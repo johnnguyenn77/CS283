@@ -420,8 +420,54 @@ void print_student(student_t *s) {
  *            M_ERR_DB_WRITE   error writing to db or tempdb file (adding student)
  *            
  */
-int compress_db(int fd){
-    printf(M_NOT_IMPL);
+int compress_db(int fd) {
+    int temp_fd;
+    student_t student;
+
+    // Open the temporary database file
+    temp_fd = open(TMP_DB_FILE, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    if (temp_fd == -1) {
+        printf(M_ERR_DB_OPEN);
+        return ERR_DB_FILE;
+    }
+
+    // Seek to the beginning of the original database file
+    if (lseek(fd, 0, SEEK_SET) == (off_t) -1) {
+        printf(M_ERR_DB_READ);
+        close(temp_fd);
+        return ERR_DB_FILE;
+    }
+
+    // Read through the original database file and copy valid records to the temporary file
+    while (read(fd, &student, STUDENT_RECORD_SIZE) == STUDENT_RECORD_SIZE) {
+        if (memcmp(&student, &EMPTY_STUDENT_RECORD, STUDENT_RECORD_SIZE) != 0) {
+            if (write(temp_fd, &student, STUDENT_RECORD_SIZE) != STUDENT_RECORD_SIZE) {
+                printf(M_ERR_DB_WRITE);
+                close(temp_fd);
+                return ERR_DB_FILE;
+            }
+        }
+    }
+
+    // Close the original database file
+    close(fd);
+
+    // Rename the temporary file to the original database file
+    if (rename(TMP_DB_FILE, DB_FILE) == -1) {
+        printf(M_ERR_DB_CREATE);
+        close(temp_fd);
+        return ERR_DB_FILE;
+    }
+
+    // Reopen the compressed database file
+    fd = open_db(DB_FILE, false);
+    if (fd < 0) {
+        printf(M_ERR_DB_OPEN);
+        close(temp_fd);
+        return ERR_DB_FILE;
+    }
+
+    printf(M_DB_COMPRESSED_OK);
     return fd;
 }
 
