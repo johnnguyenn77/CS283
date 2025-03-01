@@ -45,7 +45,7 @@ EOF
     stripped_output=$(echo "$output" | tr -d '[:space:]')
 
     # Expected output with all whitespace removed for easier matching
-    expected_output="chdir:Nosuchfileordirectorydsh3>dsh3>cmdloopreturned0"
+    expected_output="cdfailed:Nosuchfileordirectorydsh3>dsh3>cmdloopreturned0"
 
     # These echo commands will help with debugging and will only print
     #if the test fails
@@ -142,7 +142,7 @@ EOF
     echo "$stripped_output"
 
     # Expected output with all whitespace removed for easier matching
-    expected_output="chdir:Permissiondenied/tmpdsh3>dsh3>dsh3>cmdloopreturned0"
+    expected_output="cdfailed:Permissiondenied/tmpdsh3>dsh3>dsh3>cmdloopreturned0"
 
     # These echo commands will help with debugging and will only print
     #if the test fails
@@ -156,6 +156,10 @@ EOF
 
     # Assertions
     [ "$status" -eq 0 ]
+
+    # Cleanup
+    chmod 777 no_perm_dir
+    rmdir no_perm_dir
 }
 
 @test "execute piped commands" {
@@ -193,6 +197,65 @@ EOF
     stripped_output=$(echo "$output" | tr -d '[:space:]')
 
     # Expected output with all whitespace removed for easier matching
+    expected_output="hello,classdsh3>dsh3>dsh3>cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+    # Cleanup
+    rm out.txt
+}
+
+@test "append redirection" {
+    run ./dsh <<EOF
+echo "hello, class" > out.txt
+echo "this is line 2" >> out.txt
+cat out.txt
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="hello,classthisisline2dsh3>dsh3>dsh3>dsh3>cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+    # Cleanup
+    rm out.txt
+}
+
+@test "execute command with input redirection" {
+    echo "hello, class" > in.txt
+    run ./dsh <<EOF
+cat < in.txt
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
     expected_output="hello,classdsh3>dsh3>cmdloopreturned0"
 
     # These echo commands will help with debugging and will only print
@@ -207,12 +270,15 @@ EOF
 
     # Assertions
     [ "$status" -eq 0 ]
+
+    # Cleanup
+    rm in.txt
 }
 
-@test "append redirection" {
+@test "execute command with both input and output redirection" {
+    echo "hello, class" > in.txt
     run ./dsh <<EOF
-echo "hello, class" > out.txt
-echo "this is line 2" >> out.txt
+cat < in.txt > out.txt
 cat out.txt
 EOF
 
@@ -220,7 +286,7 @@ EOF
     stripped_output=$(echo "$output" | tr -d '[:space:]')
 
     # Expected output with all whitespace removed for easier matching
-    expected_output="hello,classthis is line 2dsh3>dsh3>dsh3>cmdloopreturned0"
+    expected_output="hello,classdsh3>dsh3>dsh3>cmdloopreturned0"
 
     # These echo commands will help with debugging and will only print
     #if the test fails
@@ -234,4 +300,95 @@ EOF
 
     # Assertions
     [ "$status" -eq 0 ]
+
+    # Cleanup
+    rm in.txt out.txt
+}
+
+@test "execute command with input redirection and pipe" {
+    echo "hello, class" > in.txt
+    run ./dsh <<EOF
+cat < in.txt | grep hello
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="hello,classdsh3>dsh3>cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+    # Cleanup
+    rm in.txt
+}
+
+@test "execute command with output redirection and pipe" {
+    run ./dsh <<EOF
+echo "hello, class" | grep hello > out.txt
+cat out.txt
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="hello,classdsh3>dsh3>dsh3>cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+    # Cleanup
+    rm out.txt
+}
+
+@test "execute command with input and output redirection and pipe" {
+    echo "hello, class" > in.txt
+    run ./dsh <<EOF
+cat < in.txt | grep hello > out.txt
+cat out.txt
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="hello,classdsh3>dsh3>dsh3>cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+    # Cleanup
+    rm in.txt out.txt
 }
