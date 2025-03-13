@@ -48,6 +48,7 @@ void parse_args(int argc, char *argv[], cmd_args_t *cargs) {
   //defaults
   cargs->mode = MODE_LCLI;
   cargs->port = RDSH_DEF_PORT;
+  cargs->threaded_server = 0; // Default to single-threaded mode
 
   while ((opt = getopt(argc, argv, "csi:p:xh")) != -1) {
       switch (opt) {

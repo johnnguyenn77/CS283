@@ -16,7 +16,7 @@
 
 //constants for buffer sizes
 #define RDSH_COMM_BUFF_SZ       (1024*64)   //64K
-#define STOP_SERVER_SC          200         //returned from pipeline excution
+#define STOP_SERVER_SC          200         //returned from pipeline execution
                                             //if the command is to stop the
                                             //server.  See documentation for 
                                             //exec_client_requests() for more info
@@ -70,9 +70,7 @@ int rsh_execute_pipeline(int socket_fd, command_list_t *clist);
 Built_In_Cmds rsh_match_command(const char *input);
 Built_In_Cmds rsh_built_in_cmd(cmd_buff_t *cmd);
 
-//eliminate from template, for extra credit
-void set_threaded_server(int val);
-int exec_client_thread(int main_socket, int cli_socket);
+// Extra credit: multi-threaded server support
 void *handle_client(void *arg);
 
 #endif
